@@ -11,23 +11,23 @@ import java.util.regex.Pattern;
 public class RecieptPrinter {
 
     public static void main(String[] args) throws FileNotFoundException{
-        File inFile = new File("C:\\Users\\Sean\\IdeaProjects\\CECS 274 Project 1\\resources\\PriceList.txt");
+        File inFile = new File("resources/PriceList.txt");
         Scanner fileReader = new Scanner(inFile);
         Scanner userIn = new Scanner(System.in);
         String userInput;
 
-        String noPriceRegex = "([\\w]+)\\s+([\\w | \\s+]+)\\s+([\\w | \\W]+\\s[\\w]+\\w)";
-        String fullRegex = "([\\w]+)\\s+([\\w | \\s+]+)\\s+([\\w | \\W]+\\s[\\w]+\\w)\\s+([\\w | \\W]+)";
-        Pattern fullPattern = Pattern.compile(fullRegex);
-        Pattern noPricePattern = Pattern.compile(noPriceRegex);
+        String noPriceRegex = "([\\w | \\W]+[s|\\w])\\s+(\\w[\\w | \\W]+\\S)\\s+([\\w | \\W]+\\s[\\w]+\\w)";
+        String fullRegex =    "([\\w | \\W]+[s|\\w])\\s+(\\w[\\w | \\W]+\\S)\\s+([\\w | \\W]+\\s[\\w]+\\w)\\s+([\\w | \\W]+)";
+        Pattern fullPattern = Pattern.compile(fullRegex, Pattern.CASE_INSENSITIVE);
+        Pattern noPricePattern = Pattern.compile(noPriceRegex, Pattern.CASE_INSENSITIVE);
         Matcher fileMatch;
         Matcher userMatch;
 
         System.out.print("Please enter what filename you would like to export to:\n>>");
         String filename = userIn.nextLine();
-        PrintWriter fileOut = new PrintWriter("C:\\Users\\Sean\\IdeaProjects\\CECS 274 Project 1\\resources\\"+filename+".txt");
+        PrintWriter fileOut = new PrintWriter("resources/"+filename+".txt");
         StringBuilder returnString = new StringBuilder();
-        int maxLen = 60;
+        final int maxLen = 60;
 
         HashMap<String, Double> recieptList = new HashMap<String, Double>();
         HashMap<String, Integer> quantityList = new HashMap<String, Integer>();
@@ -37,6 +37,10 @@ public class RecieptPrinter {
         int placeholderQuantitiy;
         boolean productInList = false;
 
+
+        /*
+            Begin User Input Sequence
+         */
         while(true) {
             System.out.print("Enter which product you would like to add to your cart:\t\tEnter \"DONE\" when finished.\n>>");
             userInput = userIn.nextLine();
@@ -47,12 +51,15 @@ public class RecieptPrinter {
             }
 
             if(userMatch.find()){
+                /*
+                    If match, Begin matching process
+                 */
                 while(fileReader.hasNextLine()){
 
                     fileMatch = fullPattern.matcher(fileReader.nextLine());
 
                     if(fileMatch.find()){
-                        if(fileMatch.group(1).equals(userMatch.group(1)) && fileMatch.group(2).trim().equals(userMatch.group(2)) && fileMatch.group(3).equals(userMatch.group(3))){
+                        if(fileMatch.group(1).trim().equals(userMatch.group(1)) && fileMatch.group(2).trim().equals(userMatch.group(2)) && fileMatch.group(3).trim().equals(userMatch.group(3))){
 
                             System.out.println("~~ REGEX MATCH CHECK PASSED");
 
@@ -77,30 +84,40 @@ public class RecieptPrinter {
             if(!productInList){
                 System.out.println("~~ Bool set to False, test failure".toUpperCase());  // DEBUG CODE LINE
                 System.out.println("No such product in the inventory.  Please try again."); //EXTRA CREDIT
+            }else{
+                productInList = false;
             }
             fileReader.close();
             fileReader = new Scanner(inFile);
         }
+        /*
+            Begin String building sequence
+         */
         // String itemName;
-        String numItems;
+        int numItems;
         String itemPrice;
 
+        fileOut.println("Sean's Food Emporium\n42 Answer Ln.\nChatanooga TN, 37341");
+
         for(String i : productNames){
-            numItems = quantityList.get(i).toString();
-            itemPrice = String.format("%.2f", recieptList.get(i));
+            numItems = quantityList.get(i);
+            itemPrice = String.format("$%.2f", recieptList.get(i));
             returnString.append(i);
-            if(quantityList.get(i) > 1){
+            if(numItems > 1){
+                System.out.print("~~ MULT ITEM CATCH, ADD CODE");
 
             }else{
-                for(int j = 0; j < itemPrice.length(); j++){
+                for(int j = 0; j < maxLen-itemPrice.length(); j++){
                     returnString.append(" ");
-                    // Continue from here with StringBuilder appends
-                    // Build string iterant for each line of reciept
                 }
+                // Continue from here with StringBuilder appends
+                // Build string iterant for each line of reciept
+                returnString.append(itemPrice);
             }
+            fileOut.println(returnString);
 
         }
-        fileOut.println("Sean's Food Emporium\n42 Answer Ln.\nChatanooga TN, 37341");
+
         // DEBUG
         System.out.println(recieptList.toString());
         System.out.println(quantityList.toString());
