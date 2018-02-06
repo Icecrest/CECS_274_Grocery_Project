@@ -4,6 +4,7 @@ package reciepts;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,8 +17,8 @@ public class RecieptPrinter {
         Scanner userIn = new Scanner(System.in);
         String userInput;
 
-        String noPriceRegex = "([\\w | \\W]+[s|\\w])\\s+(\\w[\\w | \\W]+\\S)\\s+([\\w | \\W]+\\s[\\w]+\\w)";
-        String fullRegex =    "([\\w | \\W]+[s|\\w])\\s+(\\w[\\w | \\W]+\\S)\\s+([\\w | \\W]+\\s[\\w]+\\w)\\s+([\\w | \\W]+)";
+        String noPriceRegex = "([\\w |\\W]+[s|\\w])\\s+(\\w[\\w |\\W]+\\S)\\s+([\\w |\\W]+\\s[\\w]+\\w)";
+        String fullRegex =    "([\\w |\\W]+[s|\\w])\\s+(\\w[\\w |\\W]+\\S)\\s+([\\w |\\W]+\\s[\\w]+\\w)\\s+([\\w |\\W]+)";
         Pattern fullPattern = Pattern.compile(fullRegex, Pattern.CASE_INSENSITIVE);
         Pattern noPricePattern = Pattern.compile(noPriceRegex, Pattern.CASE_INSENSITIVE);
         Matcher fileMatch;
@@ -29,13 +30,19 @@ public class RecieptPrinter {
         StringBuilder returnString = new StringBuilder();
         final int maxLen = 60;
 
-        HashMap<String, Double> recieptList = new HashMap<String, Double>();
-        HashMap<String, Integer> quantityList = new HashMap<String, Integer>();
-        ArrayList<String> productNames = new ArrayList<String>();
+        HashMap<String, Double> recieptList = new HashMap<>();
+        HashMap<String, Integer> quantityList = new HashMap<>();
+        ArrayList<String> productNames = new ArrayList<>();
 
         String productName;
         int placeholderQuantitiy;
         boolean productInList = false;
+        double totalPrice = 0.0;
+        double payment = 0.0;
+        int numItems;
+        String quantifier;
+        String itemPrice;
+        ArrayList<String> fileBuffer = new ArrayList<>();
 
 
         /*
@@ -67,16 +74,14 @@ public class RecieptPrinter {
                             recieptList.put(productName, Double.parseDouble(fileMatch.group(4)));
 
                             if(!quantityList.containsKey(productName)){
-                                System.out.println("~~ FIRST PRODUCT ADDITION");
+                                System.out.println("~~ FIRST PRODUCT ADDITION");        // DEBUG CODE
                                 productNames.add(productName);
                                 quantityList.put(productName, 1);
                             }else{
-                                System.out.println("~~ MULTIPLE PRODUCT QUANTIFIER");
+                                System.out.println("~~ MULTIPLE PRODUCT QUANTIFIER");       // DEBUG CODE
                                 placeholderQuantitiy = quantityList.get(productName);
                                 quantityList.replace(productName, placeholderQuantitiy, placeholderQuantitiy+1);
                             }
-                            fileOut.println("PRODUCT FOUND");
-
                             productInList = true;
 
                         }
@@ -95,10 +100,6 @@ public class RecieptPrinter {
         /*
             Begin String building sequence
          */
-        // String itemName;
-        int numItems;
-        String quantifier;
-        String itemPrice;
 
         fileOut.println("Sean's Food Emporium\n42 Answer Ln.\nChatanooga TN, 37341\n\n");
         fileOut.println("Product                                             Subtotal");
@@ -106,36 +107,69 @@ public class RecieptPrinter {
 
         for(String i : productNames){
             numItems = quantityList.get(i);
-            itemPrice = String.format("$%.2f", recieptList.get(i));
+            totalPrice += Double.parseDouble(String.format("%.2f", recieptList.get(i)*quantityList.get(i)));
+            itemPrice = String.format("$%.2f", recieptList.get(i)*quantityList.get(i));
             returnString.append(i);
             if(numItems > 1){
-                quantifier = String.valueOf(numItems)+"(@"+itemPrice+")   ";
+                quantifier = String.valueOf(numItems)+"(@"+recieptList.get(i)+")   ";
 
                 for(int j = 0; j < maxLen-itemPrice.length()-i.length()-quantifier.length(); j++){
                     returnString.append(" ");
                 }
                 returnString.append(quantifier);
                 returnString.append(itemPrice);
-
-
-
             }else{
                 for(int j = 0; j < maxLen-itemPrice.length()-i.length(); j++){
                     returnString.append(" ");
                 }
-                // Continue from here with StringBuilder appends
-                // Build string iterant for each line of reciept
                 returnString.append(itemPrice);
             }
-            fileOut.println(returnString);
+            fileBuffer.add(returnString.toString());
+            returnString = new StringBuilder();
 
         }
+
+        Collections.sort(fileBuffer);
+        for(String i : fileBuffer){
+            fileOut.println(i);
+        }
+        fileOut.println();
+
+        /*
+            Begin Payment Sequence
+         */
+        while(payment < totalPrice){
+            System.out.print("Payment Due: "+String.format("$%.2f", totalPrice-payment)+"\nPlease enter amount of payment:\n>>");
+            payment += userIn.nextDouble();
+        }
+        DecimalFormat df = new DecimalFormat("0.00");
+
+        String paymentStr = "$"+df.format(payment);
+        returnString.append("Payment");
+        for(int i = 0; i < maxLen-paymentStr.length()-7; i++){
+            returnString.append(" ");
+        }
+        returnString.append("$");
+        returnString.append(String.valueOf(payment));
+        fileOut.println(returnString);
+
+
+        String changeStr = "$"+df.format(Math.abs(totalPrice - payment));
+        returnString = new StringBuilder();
+        returnString.append("Change");
+        for(int i = 0; i < maxLen-changeStr.length()-6; i++){
+            returnString.append(" ");
+        }
+        returnString.append("$");
+        returnString.append(String.valueOf(totalPrice-payment));
+        fileOut.println(returnString);
 
         // DEBUG
         System.out.println(productNames.toString());
         System.out.println(recieptList.toString());
         System.out.println(quantityList.toString());
         // END DEBUG
+
         fileOut.close();
         fileReader.close();
     }
