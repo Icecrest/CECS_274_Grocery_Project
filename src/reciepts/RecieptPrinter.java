@@ -65,11 +65,13 @@ public class RecieptPrinter {
 
                             productName = fileMatch.group(1)+" "+fileMatch.group(2).trim();
                             recieptList.put(productName, Double.parseDouble(fileMatch.group(4)));
-                            productNames.add(productName);
 
                             if(!quantityList.containsKey(productName)){
+                                System.out.println("~~ FIRST PRODUCT ADDITION");
+                                productNames.add(productName);
                                 quantityList.put(productName, 1);
                             }else{
+                                System.out.println("~~ MULTIPLE PRODUCT QUANTIFIER");
                                 placeholderQuantitiy = quantityList.get(productName);
                                 quantityList.replace(productName, placeholderQuantitiy, placeholderQuantitiy+1);
                             }
@@ -95,19 +97,30 @@ public class RecieptPrinter {
          */
         // String itemName;
         int numItems;
+        String quantifier;
         String itemPrice;
 
-        fileOut.println("Sean's Food Emporium\n42 Answer Ln.\nChatanooga TN, 37341");
+        fileOut.println("Sean's Food Emporium\n42 Answer Ln.\nChatanooga TN, 37341\n\n");
+        fileOut.println("Product                                             Subtotal");
+        fileOut.println("____________________________________________________________");
 
         for(String i : productNames){
             numItems = quantityList.get(i);
             itemPrice = String.format("$%.2f", recieptList.get(i));
             returnString.append(i);
             if(numItems > 1){
-                System.out.print("~~ MULT ITEM CATCH, ADD CODE");
+                quantifier = String.valueOf(numItems)+"(@"+itemPrice+")   ";
+
+                for(int j = 0; j < maxLen-itemPrice.length()-i.length()-quantifier.length(); j++){
+                    returnString.append(" ");
+                }
+                returnString.append(quantifier);
+                returnString.append(itemPrice);
+
+
 
             }else{
-                for(int j = 0; j < maxLen-itemPrice.length(); j++){
+                for(int j = 0; j < maxLen-itemPrice.length()-i.length(); j++){
                     returnString.append(" ");
                 }
                 // Continue from here with StringBuilder appends
@@ -119,11 +132,11 @@ public class RecieptPrinter {
         }
 
         // DEBUG
+        System.out.println(productNames.toString());
         System.out.println(recieptList.toString());
         System.out.println(quantityList.toString());
         // END DEBUG
         fileOut.close();
         fileReader.close();
     }
-
 }
