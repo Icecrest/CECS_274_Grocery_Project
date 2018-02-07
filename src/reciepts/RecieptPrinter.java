@@ -4,7 +4,7 @@ package reciepts;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -90,7 +90,7 @@ public class RecieptPrinter {
             }
             if(!productInList){
                 System.out.println("~~ Bool set to False, test failure".toUpperCase());  // DEBUG CODE LINE
-                System.out.println("No such product in the inventory.  Please try again."); //EXTRA CREDIT
+                System.out.println("No such product in the inventory.  Please try again."); //EXTRA CREDIT - DATA VALIDATION
             }else{
                 productInList = false;
             }
@@ -129,39 +129,47 @@ public class RecieptPrinter {
 
         }
 
-        Collections.sort(fileBuffer);
+        Collections.sort(fileBuffer);   // EXTRA CREDIT - ALPHABETIZING
         for(String i : fileBuffer){
             fileOut.println(i);
         }
-        fileOut.println();
 
         /*
             Begin Payment Sequence
+            EXTRA CREDIT - PAYMENT
          */
+
+        NumberFormat nf = NumberFormat.getCurrencyInstance();
+        fileOut.println();
+        fileOut.print("Total");
+        for(int i = 0; i < maxLen-5-nf.format(totalPrice).length(); i++){
+            fileOut.print(" ");
+        }
+        fileOut.print(nf.format(totalPrice));
+        fileOut.print("\n");
+
         while(payment < totalPrice){
             System.out.print("Payment Due: "+String.format("$%.2f", totalPrice-payment)+"\nPlease enter amount of payment:\n>>");
             payment += userIn.nextDouble();
         }
-        DecimalFormat df = new DecimalFormat("0.00");
 
-        String paymentStr = "$"+df.format(payment);
+
+        String paymentStr = nf.format(payment);
         returnString.append("Payment");
         for(int i = 0; i < maxLen-paymentStr.length()-7; i++){
             returnString.append(" ");
         }
-        returnString.append("$");
-        returnString.append(String.valueOf(payment));
+        returnString.append(paymentStr);
         fileOut.println(returnString);
 
 
-        String changeStr = "$"+df.format(Math.abs(totalPrice - payment));
+        String changeStr = nf.format(payment - totalPrice);
         returnString = new StringBuilder();
         returnString.append("Change");
         for(int i = 0; i < maxLen-changeStr.length()-6; i++){
             returnString.append(" ");
         }
-        returnString.append("$");
-        returnString.append(String.valueOf(totalPrice-payment));
+        returnString.append(changeStr);
         fileOut.println(returnString);
 
         // DEBUG
