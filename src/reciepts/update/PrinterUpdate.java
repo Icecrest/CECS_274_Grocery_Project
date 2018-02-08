@@ -43,6 +43,7 @@ public class PrinterUpdate {
         String quantifier;
         String itemPrice;
         ArrayList<String> fileBuffer = new ArrayList<>();
+        NumberFormat nf = NumberFormat.getCurrencyInstance();
 
 
         /*
@@ -50,7 +51,7 @@ public class PrinterUpdate {
          */
         while(true) {
             System.out.print("Enter which product you would like to add to your cart:\t\tEnter \"DONE\" when finished.\n>>");
-            userInput = userIn.nextLine();
+            userInput = userIn.nextLine().trim();
             if(!userInput.equalsIgnoreCase("done")){
                 userMatch = noPricePattern.matcher(userInput);
             }else{
@@ -68,11 +69,11 @@ public class PrinterUpdate {
                     if(fileMatch.find()){
                         if(fileMatch.group(1).trim().equals(userMatch.group(1)) && fileMatch.group(2).trim().equals(userMatch.group(2)) && fileMatch.group(3).trim().equals(userMatch.group(3))){
                             productName = fileMatch.group(1)+" "+fileMatch.group(2).trim();
-                            if(products.containsKey(productName)){
+                            if(products.containsKey(productName) && products.get(productName).getAmt().equals(userMatch.group(3))){
                                 products.get(productName).setQuantity(1);
                             }else{
-                                productNames.add(productName);
-                                products.put(productName, new Item(Double.parseDouble(fileMatch.group(4)), 1));
+                                productNames.add(productName+" "+userMatch.group(3));
+                                products.put(productName+" "+userMatch.group(3), new Item(Double.parseDouble(fileMatch.group(4)), userMatch.group(3),1));
                             }
                             productInList = true;
                         }
@@ -101,7 +102,7 @@ public class PrinterUpdate {
             itemPrice = String.format("$%.2f", products.get(i).getTotalPrice());
             returnString.append(i);
             if(numItems > 1){
-                quantifier = String.valueOf(numItems)+"(@"+products.get(i).getPrice()+")   ";
+                quantifier = String.valueOf(numItems)+"(@"+nf.format(products.get(i).getPrice())+")   ";
 
                 for(int j = 0; j < maxLen-itemPrice.length()-i.length()-quantifier.length(); j++){
                     returnString.append(" ");
@@ -127,7 +128,6 @@ public class PrinterUpdate {
         /*
             Begin Payment Sequence
          */
-        NumberFormat nf = NumberFormat.getCurrencyInstance();
         fileOut.println();
         fileOut.print("Total");
         for(int i = 0; i < maxLen-5-nf.format(totalPrice).length(); i++){
@@ -159,6 +159,11 @@ public class PrinterUpdate {
         }
         returnString.append(changeStr);
         fileOut.println(returnString);
+
+        // DEBUG
+        System.out.println(productNames.toString());
+        System.out.println(products.toString());
+        // END DEBUG
 
         fileOut.close();
         fileReader.close();
