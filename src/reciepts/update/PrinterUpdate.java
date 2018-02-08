@@ -1,16 +1,16 @@
 package reciepts.update;
 //Created by Sean C. on 2/8/2018
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+        import java.io.File;
+        import java.io.FileNotFoundException;
+        import java.io.PrintWriter;
+        import java.text.NumberFormat;
+        import java.util.ArrayList;
+        import java.util.Collections;
+        import java.util.HashMap;
+        import java.util.Scanner;
+        import java.util.regex.Matcher;
+        import java.util.regex.Pattern;
 
 public class PrinterUpdate {
     public static void main(String[] args) throws FileNotFoundException {
@@ -68,12 +68,12 @@ public class PrinterUpdate {
 
                     if(fileMatch.find()){
                         if(fileMatch.group(1).trim().equals(userMatch.group(1)) && fileMatch.group(2).trim().equals(userMatch.group(2)) && fileMatch.group(3).trim().equals(userMatch.group(3))){
-                            productName = fileMatch.group(1)+" "+fileMatch.group(2).trim();
-                            if(products.containsKey(productName) && products.get(productName).getAmt().equals(userMatch.group(3))){
+                            productName = fileMatch.group(1)+" "+fileMatch.group(2).trim()+" "+fileMatch.group(3);
+                            if(productNames.contains(productName)){
                                 products.get(productName).setQuantity(1);
                             }else{
-                                productNames.add(productName+" "+userMatch.group(3));
-                                products.put(productName+" "+userMatch.group(3), new Item(Double.parseDouble(fileMatch.group(4)), userMatch.group(3),1));
+                                productNames.add(productName);
+                                products.put(productName, new Item(Double.parseDouble(fileMatch.group(4)), userMatch.group(3),1));
                             }
                             productInList = true;
                         }
