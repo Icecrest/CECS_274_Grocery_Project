@@ -160,11 +160,6 @@ public class PrinterUpdate {
         returnString.append(changeStr);
         fileOut.println(returnString);
 
-        // DEBUG
-        System.out.println(productNames.toString());
-        System.out.println(products.toString());
-        // END DEBUG
-
         fileOut.close();
         fileReader.close();
     }
